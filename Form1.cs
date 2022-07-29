@@ -15,7 +15,7 @@ namespace ImageComparison
 
         //Camera variables
         float zoomValue = 1.0f;
-        int[] zoomPoint = new int[2] { 500, 500 };
+        float[] zoomPoint = new float[2] { 500, 500 };
 
         //Mouse variables
         bool lMouseDown = false;
@@ -110,8 +110,8 @@ namespace ImageComparison
             // Move camera
             if (lMouseDown)
             {
-                zoomPoint[0] -= (int)((pos.X - pPos.X) / zoomValue);
-                zoomPoint[1] -= (int)((pos.Y - pPos.Y) / zoomValue);
+                zoomPoint[0] -= (pos.X - pPos.X) / zoomValue;
+                zoomPoint[1] -= (pos.Y - pPos.Y) / zoomValue;
             }
 
             using (Graphics g = Graphics.FromImage(canvas))
