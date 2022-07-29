@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.mainLoop = new System.Windows.Forms.Timer(this.components);
             this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
@@ -45,12 +45,14 @@
             this.pictureBox1.Size = new System.Drawing.Size(1039, 510);
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
+            this.pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MouseDownEvent);
+            this.pictureBox1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MouseUpEvent);
             // 
-            // timer1
+            // mainLoop
             // 
-            this.timer1.Enabled = true;
-            this.timer1.Interval = 8;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.mainLoop.Enabled = true;
+            this.mainLoop.Interval = 8;
+            this.mainLoop.Tick += new System.EventHandler(this.mainLoop_Tick);
             // 
             // label1
             // 
@@ -71,7 +73,7 @@
             this.Controls.Add(this.pictureBox1);
             this.Name = "Form1";
             this.Text = "Form1";
-            this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseWheel);
+            this.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.MouseWheelEvent);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -81,7 +83,7 @@
         #endregion
 
         private PictureBox pictureBox1;
-        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer mainLoop;
         private Label label1;
     }
 }
