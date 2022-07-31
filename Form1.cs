@@ -10,8 +10,8 @@ namespace ImageComparison
         //Bitmap img2 = new Bitmap("C:\\Users\\Nevenit\\Pictures\\kirito3.png");
 
         //Temprorary way to chose images
-        Bitmap img1 = new Bitmap("C:\\Users\\Nevenit\\Pictures\\8k.jpg");
-        Bitmap img2 = new Bitmap("C:\\Users\\Nevenit\\Pictures\\1k2.jpg");
+        Bitmap img2 = new Bitmap("C:\\Users\\Nevenit\\Pictures\\SteamScreenshots\\2160p.png");
+        Bitmap img1 = new Bitmap("C:\\Users\\Nevenit\\Pictures\\SteamScreenshots\\1080p.png");
 
         //Camera variables
         float zoomValue = 1.0f;
@@ -91,21 +91,21 @@ namespace ImageComparison
             canvas.Dispose();
             canvas = new Bitmap(canvasSize[0], canvasSize[1]);
 
-
-            // Set bounds for the mosuse position
-            if (pos.X < 1)
-                pos.X = 1;
-            if (pos.Y < 1)
-                pos.Y = 1;
-
             // Calculate image pos
-            int[] imgPos = { (int)((canvasSize[0] / 2) - (zoomPoint[0] * zoomValue)),
-                             (int)((canvasSize[1] / 2) - (zoomPoint[1] * zoomValue))};
+            float[] imgPos = { (canvasSize[0] / 2) - (zoomPoint[0] * zoomValue),
+                               (canvasSize[1] / 2) - (zoomPoint[1] * zoomValue)};
 
             // Calculate image size
-            int[] imgSize = { 
-                            (int)(Math.Max(img1.Width, img2.Width) * zoomValue),
-                            (int)(Math.Max(img1.Height, img2.Height) * zoomValue) };
+            float[] imgSize = { 
+                            (Math.Max(img1.Width, img2.Width) * zoomValue),
+                            (Math.Max(img1.Height, img2.Height) * zoomValue) };
+
+            float pixelSize = imgSize[0] / img2.Width;
+
+
+            // Make sure the mouse isnt beyond the image
+            float[] mousePos = { Math.Clamp(pos.X, imgPos[0], imgPos[0] + imgSize[0]), 
+                                Math.Clamp(pos.Y, imgPos[1], imgPos[1] + imgSize[1]) };
 
             // Move camera
             if (lMouseDown)
@@ -117,20 +117,22 @@ namespace ImageComparison
             using (Graphics g = Graphics.FromImage(canvas))
             {
                 g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = PixelOffsetMode.Half;
+                g.CompositingQuality = CompositingQuality.HighSpeed;
 
                 g.DrawImage(img1, imgPos[0], imgPos[1], imgSize[0], imgSize[1]);
 
-                g.DrawImage(img2, imgPos[0], imgPos[1], imgSize[0], imgSize[1]);
 
-                //using (Bitmap croppedImg = ImageProcessing.CropImage(img1, new Rectangle((int)(img1.Width * zoomValue * (pos.X / (float)imgSize[0])), 0, imgSize[0] - (int)(img1.Width * zoomValue * (pos.X / (float)imgSize[0])), (int)(img1.Height * zoomValue))))
-                //{
-                //    g.DrawImage(croppedImg, pos.X, 0, imgSize[0], imgSize[1]);
-                //}
+                // Mouse x relative to the image
+                float mouseXOnImg = pos.X - imgPos[0];
 
-                //using (Bitmap croppedImg = ImageProcessing.CropImage(img2, new Rectangle(0, 0, (int)(img2.Width * zoomValue * (pos.X / (float)imgSize[0])), (int)(img2.Height * zoomValue))))
-                //{
-                //    g.DrawImage(croppedImg, 0, 0, pos.X, imgSize[1]);
-                //}
+                // Large scaled image to small original image
+                int scaledImageWidth = (int)(mouseXOnImg / imgSize[0] * img2.Width);
+
+                using (Bitmap croppedImg = ImageProcessing.CropImage(img2, new Rectangle(0, 0, scaledImageWidth, img2.Height)))
+                {
+                    g.DrawImage(croppedImg, imgPos[0], imgPos[1], (pos.X - imgPos[0]) - ((pos.X - imgPos[0]) % pixelSize) , imgSize[1]);
+                }
 
                 Pen pen = new Pen(Color.FromArgb(255, 255, 255));
                 g.DrawLine(pen, pos.X, 0, pos.X, pictureBox1.Height);
@@ -147,8 +149,8 @@ namespace ImageComparison
 }
 
 /* TODO
- * grab and move
- * zoom relative to mouse pointer, zoom into mouse
+ * mouse limits only apply to the form not to the image itself
+ * crop background image as well as the fron
  * 
  * 
  * 
