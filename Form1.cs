@@ -38,7 +38,7 @@ namespace ImageComparison
             zoomValue += (zoomValue / 20) * scale;
         }
 
-        private void MouseDownEvent(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void MouseDownEvent(object sender, MouseEventArgs e)
         {
             switch (e.Button)
             {
@@ -57,7 +57,7 @@ namespace ImageComparison
             }
         }
 
-        private void MouseUpEvent(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void MouseUpEvent(object sender, MouseEventArgs e)
         {
             switch (e.Button)
             {
@@ -92,20 +92,20 @@ namespace ImageComparison
             canvas = new Bitmap(canvasSize[0], canvasSize[1]);
 
             // Calculate image pos
-            float[] imgPos = { (canvasSize[0] / 2) - (zoomPoint[0] * zoomValue),
-                               (canvasSize[1] / 2) - (zoomPoint[1] * zoomValue)};
+            int[] imgPos = { (int)((canvasSize[0] / 2) - (zoomPoint[0] * zoomValue)),
+                              (int)((canvasSize[1] / 2) - (zoomPoint[1] * zoomValue))};
 
             // Calculate image size
-            float[] imgSize = { 
-                            (Math.Max(img1.Width, img2.Width) * zoomValue),
-                            (Math.Max(img1.Height, img2.Height) * zoomValue) };
+            int[] imgSize = {
+                            (int)(Math.Max(img1.Width, img2.Width) * zoomValue),
+                            (int)(Math.Max(img1.Height, img2.Height) * zoomValue) };
 
-            float pixelSize = imgSize[0] / img2.Width;
+            double pixelSize = (double)imgSize[0] / img2.Width;
 
 
             // Make sure the mouse isnt beyond the image
-            float[] mousePos = { Math.Clamp(pos.X, imgPos[0], imgPos[0] + imgSize[0]), 
-                                Math.Clamp(pos.Y, imgPos[1], imgPos[1] + imgSize[1]) };
+            int[] mousePos = { Math.Clamp(pos.X, imgPos[0], imgPos[0] + imgSize[0]), 
+                                 Math.Clamp(pos.Y, imgPos[1], imgPos[1] + imgSize[1])};
 
             // Move camera
             if (lMouseDown)
@@ -124,21 +124,27 @@ namespace ImageComparison
 
 
                 // Mouse x relative to the image
-                float mouseXOnImg = pos.X - imgPos[0];
+                int mouseXOnImg = mousePos[0] - imgPos[0];
 
                 // Large scaled image to small original image
-                int scaledImageWidth = (int)(mouseXOnImg / imgSize[0] * img2.Width);
+                int scaledImageWidth = (int)(mouseXOnImg / pixelSize);
 
-                using (Bitmap croppedImg = ImageProcessing.CropImage(img2, new Rectangle(0, 0, scaledImageWidth, img2.Height)))
-                {
-                    g.DrawImage(croppedImg, imgPos[0], imgPos[1], (pos.X - imgPos[0]) - ((pos.X - imgPos[0]) % pixelSize) , imgSize[1]);
-                }
+                // Width to nearest pixel
+                float flooredWidth = (float)(pixelSize * scaledImageWidth);
+
+                //label1.Text = String.Format("X: {0} \nY: {1}\nW: {2}\nMoI: {3}\nMoIBound: {4}\nBORKED?: {5}\nPixelSize: {6}\nFlooredWidth: {7}", imgPos[0], imgPos[1], scaledImageWidth, mouseXOnImg, (mouseXOnImg % pixelSize), mouseXOnImg - (mouseXOnImg % pixelSize), pixelSize, flooredWidth);
+
+                if (scaledImageWidth > 0)
+                    using (Bitmap croppedImg = ImageProcessing.CropImage(img2, new Rectangle(0, 0, scaledImageWidth, img2.Height)))
+                    {
+                        g.DrawImage(croppedImg, imgPos[0], imgPos[1], flooredWidth, imgSize[1]);
+                    }
 
                 Pen pen = new Pen(Color.FromArgb(255, 255, 255));
                 g.DrawLine(pen, pos.X, 0, pos.X, pictureBox1.Height);
             }
             var timeEnd = stopwatch.ElapsedMilliseconds;
-            label1.Text = timeEnd - timeStart + "ms";
+            //label1.Text = timeEnd - timeStart + "ms";
 
             pictureBox1.Image = canvas;
 
