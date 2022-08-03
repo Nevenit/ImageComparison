@@ -100,11 +100,8 @@ namespace ImageComparison
                             (int)(Math.Max(img1.Width, img2.Width) * zoomValue),
                             (int)(Math.Max(img1.Height, img2.Height) * zoomValue) };
 
-            double pixelSize = (double)imgSize[0] / img2.Width;
-
-
             // Make sure the mouse isnt beyond the image
-            int[] mousePos = { Math.Clamp(pos.X, imgPos[0], imgPos[0] + imgSize[0]), 
+            int[] mousePos = { Math.Clamp(pos.X, imgPos[0], imgPos[0] + imgSize[0] + 1), 
                                  Math.Clamp(pos.Y, imgPos[1], imgPos[1] + imgSize[1])};
 
             // Move camera
@@ -120,31 +117,29 @@ namespace ImageComparison
                 g.PixelOffsetMode = PixelOffsetMode.Half;
                 g.CompositingQuality = CompositingQuality.HighSpeed;
 
-                g.DrawImage(img1, imgPos[0], imgPos[1], imgSize[0], imgSize[1]);
-
-
                 // Mouse x relative to the image
                 int mouseXOnImg = mousePos[0] - imgPos[0];
 
                 // Large scaled image to small original image
-                int scaledImageWidth = (int)(mouseXOnImg / pixelSize);
+                int scaledImageWidth = (int)(mouseXOnImg / zoomValue);
 
                 // Width to nearest pixel
-                float flooredWidth = (float)(pixelSize * scaledImageWidth);
+                float flooredWidth = (float)(zoomValue * scaledImageWidth);
 
-                //label1.Text = String.Format("X: {0} \nY: {1}\nW: {2}\nMoI: {3}\nMoIBound: {4}\nBORKED?: {5}\nPixelSize: {6}\nFlooredWidth: {7}", imgPos[0], imgPos[1], scaledImageWidth, mouseXOnImg, (mouseXOnImg % pixelSize), mouseXOnImg - (mouseXOnImg % pixelSize), pixelSize, flooredWidth);
+                //label1.Text = String.Format("X: {0} \nY: {1}\nW: {2}\nMoI: {3}\nMoIBound: {4}\nBORKED?: {5}\nPixelSize: {6}\nFlooredWidth: {7}\nZoomValue: {8}", imgPos[0], imgPos[1], scaledImageWidth, mouseXOnImg, (mouseXOnImg % pixelSize), mouseXOnImg - (mouseXOnImg % pixelSize), pixelSize, flooredWidth, zoomValue);
+
+                using (Bitmap croppedImg = ImageProcessing.CropImage(img1, new Rectangle(img1.Width - scaledImageWidth, 0, 0, img1.Height)))
+                    g.DrawImage(croppedImg, flooredWidth, imgPos[1], imgSize[0] - flooredWidth, imgSize[1]);
 
                 if (scaledImageWidth > 0)
                     using (Bitmap croppedImg = ImageProcessing.CropImage(img2, new Rectangle(0, 0, scaledImageWidth, img2.Height)))
-                    {
                         g.DrawImage(croppedImg, imgPos[0], imgPos[1], flooredWidth, imgSize[1]);
-                    }
 
                 Pen pen = new Pen(Color.FromArgb(255, 255, 255));
                 g.DrawLine(pen, pos.X, 0, pos.X, pictureBox1.Height);
             }
             var timeEnd = stopwatch.ElapsedMilliseconds;
-            //label1.Text = timeEnd - timeStart + "ms";
+            label1.Text = timeEnd - timeStart + "ms";
 
             pictureBox1.Image = canvas;
 
@@ -155,7 +150,7 @@ namespace ImageComparison
 }
 
 /* TODO
- * mouse limits only apply to the form not to the image itself
+ * 
  * crop background image as well as the fron
  * 
  * 
